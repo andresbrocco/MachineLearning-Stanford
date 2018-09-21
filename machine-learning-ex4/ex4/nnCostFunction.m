@@ -38,6 +38,22 @@ Theta2_grad = zeros(size(Theta2));
 %         variable J. After implementing Part 1, you can verify that your
 %         cost function computation is correct by verifying the cost
 %         computed in ex4.m
+
+a1 = [ones(m, 1), X]; % 5000x401
+z2 = a1*Theta1'; % 5000x25 --------------- inputs for second layer
+a2 = sigmoid(z2); % 5000x25
+a2 = [ones(m, 1), a2]; %5000x26
+z3 = a2*Theta2'; % 5000x10 ----------------- inputs for output layer
+a3 = sigmoid(z3); % 5000x10
+
+y_gabarito = zeros(m, num_labels); 
+for label = 1:num_labels
+  y_gabarito(:, label) = y==label;
+  end
+
+J_raw = 1/m*sum(sum(-y_gabarito.*log(a3)-(1-y_gabarito).*log(1-a3)));
+J_reg = lambda/(2*m)*(sum(sum(Theta1(:, 2:end).^2)) + sum(sum(Theta2(:, 2:end).^2)));
+J = J_raw + J_reg;
 %
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
@@ -54,6 +70,14 @@ Theta2_grad = zeros(size(Theta2));
 %               over the training examples if you are implementing it for the 
 %               first time.
 %
+
+delta_out = a3 - y_gabarito; % 5000 x 10
+delta_hidden = (delta_out*Theta2(:, 2:end)).*sigmoidGradient(z2); % 5000 x 25
+
+Theta2_grad_raw = (a2'*delta_out/m)'; % 26x10
+Theta1_grad_raw = (a1'*delta_hidden/m)'; % 401x25
+
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -62,26 +86,15 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad_reg = lambda/m*Theta1;
+Theta1_grad_reg(:, 1) = 0;
+Theta2_grad_reg = lambda/m*Theta2;
+Theta2_grad_reg(:, 1) = 0;
 
 % -------------------------------------------------------------
 
+Theta1_grad = Theta1_grad_raw + Theta1_grad_reg;
+Theta2_grad = Theta2_grad_raw + Theta2_grad_reg;
 % =========================================================================
 
 % Unroll gradients
